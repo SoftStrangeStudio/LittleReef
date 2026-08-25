@@ -1,5 +1,3 @@
-[main 652be5a] Improve coral presentation
- 1 file changed, 1 insertion(+), 1 deletion(-)
 import * as THREE from 'three';
 
 export class ReefRenderer {
