@@ -6,6 +6,7 @@ import { FishService } from '../fish/FishService.js';
 import { BreedingService } from '../breeding/BreedingService.js';
 import { SelectionService } from '../selection/SelectionService.js';
 import { UIService } from '../ui/UIService.js';
+import { FishPhysics } from '../physics/FishPhysics.js';
 
 export class LittleReefApp {
   constructor(root) {
@@ -23,7 +24,8 @@ export class LittleReefApp {
 
     this.#lighting();
     this.fishRenderer = new FishRenderer();
-    this.fishService = new FishService();
+    this.reefPhysics = new FishPhysics(this.reefService.bounds);
+    this.fishService = new FishService(Math.random, this.reefPhysics);
     this.breedingService = new BreedingService(this.fishService);
     this.reefService = new ReefService(this.scene, new ReefRenderer());
     this.fishObjects = new Map();
@@ -48,6 +50,7 @@ export class LittleReefApp {
     object.position.set(-3.1 + col * 2.05, 0.8 - row * 1.45, -0.5 + (index % 3) * 0.45);
     this.scene.add(object);
     this.fishObjects.set(fish.id, object);
+    this.reefPhysics.addFish(fish.id, object.position);
     this.selection.register(object);
   }
 
@@ -77,6 +80,7 @@ export class LittleReefApp {
     for (const [id, object] of this.fishObjects) {
       this.fishService.behaviour(id)?.update(object, delta, elapsed, this.reefService.bounds);
     }
+    this.reefPhysics.step(delta, [...this.fishObjects.values()]);
     this.renderer.render(this.scene, this.camera);
   }
 

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 export class FishBehaviour {
-  constructor(random = Math.random) {
+  constructor(random = Math.random, physics = null) {
+    this.physics = physics;
     this.velocity = new THREE.Vector3(
       random() > 0.5 ? 0.35 : -0.35,
       (random() - 0.5) * 0.08,
@@ -13,6 +14,16 @@ export class FishBehaviour {
 
   update(object, delta, elapsed, bounds) {
     this.phase += delta * this.speed;
+    if (this.physics) {
+      this.physics.steer(object.userData.fishId, {
+        x: this.velocity.x * this.speed,
+        y: Math.sin(elapsed * 1.35 + this.phase) * 0.32,
+        z: Math.sin(elapsed * 0.7 + this.phase) * 0.16
+      });
+      const tail = object.userData.tailMesh;
+      if (tail) tail.rotation.y = Math.sin(elapsed * 7 * this.speed + this.phase) * 0.32;
+      return;
+    }
     object.position.addScaledVector(this.velocity, delta * this.speed);
     object.position.y += Math.sin(elapsed * 1.35 + this.phase) * delta * 0.06;
     object.position.z += Math.sin(elapsed * 0.7 + this.phase) * delta * 0.025;

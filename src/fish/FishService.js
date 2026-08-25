@@ -2,8 +2,9 @@ import { FishTraits, randomTrait } from './FishTraits.js';
 import { FishBehaviour } from './FishBehaviour.js';
 
 export class FishService {
-  constructor(random = Math.random) {
+  constructor(random = Math.random, physics = null) {
     this.random = random;
+    this.physics = physics;
     this.fish = new Map();
     this.behaviours = new Map();
     this.nextId = 1;
@@ -28,7 +29,7 @@ export class FishService {
     const id = `fish-${String(this.nextId++).padStart(3, '0')}`;
     const fish = { id, name: `Fish ${id.slice(-3)}`, generation, parents, traits };
     this.fish.set(id, fish);
-    this.behaviours.set(id, new FishBehaviour(this.random));
+    this.behaviours.set(id, new FishBehaviour(this.random, this.physics));
     return fish;
   }
 
