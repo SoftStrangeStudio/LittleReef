@@ -1,5 +1,3 @@
-[main c0f9312] Polish selection accent
- 1 file changed, 1 insertion(+)
 import * as THREE from 'three';
 
 const bodyScale = {
