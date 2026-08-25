@@ -1,3 +1,5 @@
+[main 7f4a316] Make reef particles feel alive
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 import * as THREE from 'three';
 
 export class ReefService {
@@ -7,7 +9,7 @@ export class ReefService {
   }
 
   update(delta, elapsed) {
-    this.visuals.particles.rotation.y += delta * 0.006;
+    this.visuals.particles.rotation.y += delta * 0.012;
     this.visuals.particles.position.y = Math.sin(elapsed * 0.15) * 0.08;
   }
 }
