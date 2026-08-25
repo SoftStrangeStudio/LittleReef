@@ -1,3 +1,5 @@
+[main c0f9312] Polish selection accent
+ 1 file changed, 1 insertion(+)
 import * as THREE from 'three';
 
 const bodyScale = {
@@ -52,6 +54,7 @@ export class FishRenderer {
       ring.position.y = -0.42;
       group.add(ring);
       group.userData.selectionRing = ring;
+      ring.userData.selectionAccent = true;
     }
     if (group.userData.selectionRing) group.userData.selectionRing.visible = selected;
   }
