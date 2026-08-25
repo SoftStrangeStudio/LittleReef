@@ -98,12 +98,13 @@ export class LittleReefApp {
     const delta = Math.min(this.clock.getDelta(), 0.05);
     const elapsed = this.clock.elapsedTime;
     this.reefService.update(delta, elapsed);
+    const objects = [...this.fishObjects.values()];
     for (const [id, object] of this.fishObjects) {
-      this.fishService.behaviour(id)?.update(object, delta, elapsed, this.reefService.bounds);
+      this.fishService.behaviour(id)?.update(object, delta, elapsed, this.reefService.bounds, objects);
     }
-    this.reefPhysics.step(delta, [...this.fishObjects.values()]);
-    this.fishRenderer.updateLOD(this.camera, this.fishObjects.values());
-    this.fishRenderer.syncTransforms(this.fishObjects.values());
+    this.reefPhysics.step(delta, objects);
+    this.fishRenderer.updateLOD(this.camera, objects);
+    this.fishRenderer.syncTransforms(objects);
     this.renderer.render(this.scene, this.camera);
   }
 

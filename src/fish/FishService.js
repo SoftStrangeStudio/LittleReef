@@ -38,7 +38,7 @@ export class FishService {
       traits: traits ?? traitsFromGenome(resolvedGenome)
     };
     this.fish.set(id, fish);
-    this.behaviours.set(id, new FishBehaviour(this.random, this.physics));
+    this.behaviours.set(id, new FishBehaviour(this.random, this.physics, fish));
     return fish;
   }
 
