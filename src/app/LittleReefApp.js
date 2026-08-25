@@ -8,6 +8,7 @@ import { SelectionService } from '../selection/SelectionService.js';
 import { UIService } from '../ui/UIService.js';
 import { FishPhysics } from '../physics/FishPhysics.js';
 import { GameStateService } from '../game/GameStateService.js';
+import { ReefAudioService } from '../audio/ReefAudioService.js';
 
 export class LittleReefApp {
   constructor(root) {
@@ -26,17 +27,27 @@ export class LittleReefApp {
     this.#lighting();
     this.reefService = new ReefService(this.scene, new ReefRenderer());
     this.fishRenderer = new FishRenderer();
-    this.reefPhysics = new FishPhysics(this.reefService.bounds);
+    this.audio = new ReefAudioService();
+    this.audio.attachUserGesture(root);
+    this.reefPhysics = new FishPhysics(this.reefService.bounds, () => this.audio.playCollision());
     this.fishService = new FishService(Math.random, this.reefPhysics);
     this.breedingService = new BreedingService(this.fishService);
     this.gameState = new GameStateService();
     this.fishObjects = new Map();
 
-    this.ui = new UIService(root, () => {}, (ids) => this.#breed(ids));
+    this.ui = new UIService(root, (ids) => {
+      this.gameState.enter('parent-selection');
+      this.audio.playParent(this.fishService.get(ids.at(-1)));
+    }, (ids) => this.#breed(ids));
     this.ui.updateGameState(this.gameState.snapshot());
     this.selection = new SelectionService(this.camera, this.renderer.domElement, this.fishRenderer, (id) => {
       const fish = this.fishService.get(id);
-      if (fish) this.ui.showFish(fish);
+      if (fish) {
+        this.gameState.enter('fish-inspection');
+        this.audio.playSelection(fish);
+        this.ui.showFish(fish);
+        this.ui.updateGameState(this.gameState.snapshot());
+      }
     });
 
     for (let i = 0; i < 8; i++) this.#spawn(this.fishService.createStarter(), i);
@@ -61,12 +72,14 @@ export class LittleReefApp {
 
   #breed(ids) {
     this.gameState.enter('breeding');
+    this.audio.playBreed(ids.join(':'));
     const child = this.breedingService.breed(this.fishService.get(ids[0]), this.fishService.get(ids[1]));
     if (!child) return;
     this.#spawn(child);
     this.ui.resetParents();
     this.ui.showFish(child);
     this.gameState.recordBreed(child);
+    this.audio.playReveal(child);
     this.ui.updateGameState(this.gameState.snapshot());
   }
 

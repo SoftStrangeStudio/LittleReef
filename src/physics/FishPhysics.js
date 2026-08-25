@@ -9,12 +9,13 @@ const wall = (world, position, halfExtents) => {
 };
 
 export class FishPhysics {
-  constructor(bounds) {
+  constructor(bounds, onCollision = null) {
     this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, -0.18, 0) });
     this.world.broadphase = new CANNON.SAPBroadphase(this.world);
     this.world.allowSleep = true;
     this.bodies = new Map();
     this.collisions = 0;
+    this.onCollision = onCollision;
     this.world.defaultContactMaterial.friction = 0.18;
     this.world.defaultContactMaterial.restitution = 0.42;
     const half = bounds.clone().multiplyScalar(0.5);
@@ -41,7 +42,7 @@ export class FishPhysics {
     });
     body.addShape(new CANNON.Sphere(Math.max(0.22, radius)));
     body.position.set(position.x, position.y, position.z);
-    body.addEventListener('collide', () => { this.collisions += 1; });
+    body.addEventListener('collide', () => { this.collisions += 1; this.onCollision?.(); });
     this.world.addBody(body);
     this.bodies.set(id, body);
     return body;
