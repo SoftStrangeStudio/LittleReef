@@ -81,6 +81,8 @@ export class LittleReefApp {
       this.fishService.behaviour(id)?.update(object, delta, elapsed, this.reefService.bounds);
     }
     this.reefPhysics.step(delta, [...this.fishObjects.values()]);
+    this.fishRenderer.updateLOD(this.camera, this.fishObjects.values());
+    this.fishRenderer.syncTransforms(this.fishObjects.values());
     this.renderer.render(this.scene, this.camera);
   }
 

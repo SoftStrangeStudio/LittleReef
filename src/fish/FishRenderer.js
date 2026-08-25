@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { NexusFishFactory } from './NexusFishFactory.js';
+import { FishTransformBuffer } from '../performance/FishTransformBuffer.js';
 
 const bodyScale = {
   round: [1.05, 0.72, 0.58],
@@ -10,6 +11,7 @@ const bodyScale = {
 export class FishRenderer {
   constructor(factory = new NexusFishFactory()) {
     this.factory = factory;
+    this.transformBuffer = new FishTransformBuffer();
   }
 
   create(fish) {
@@ -63,6 +65,28 @@ export class FishRenderer {
       ring.userData.selectionAccent = true;
     }
     if (group.userData.selectionRing) group.userData.selectionRing.visible = selected;
+  }
+
+  updateLOD(camera, objects) {
+    const selected = new Set();
+    for (const object of objects) {
+      if (object.userData.selectionRing?.visible) selected.add(object);
+    }
+    for (const object of objects) {
+      const distanceSquared = camera.position.distanceToSquared(object.position);
+      const tier = selected.has(object) || distanceSquared < 100 ? 'near'
+        : distanceSquared < 196 ? 'mid' : 'distant';
+      object.userData.lodTier = tier;
+      const distant = object.userData.distantMesh;
+      if (!distant) continue;
+      const showDistant = tier === 'distant' && !selected.has(object);
+      distant.visible = showDistant;
+      for (const mesh of object.userData.detailMeshes ?? []) mesh.visible = !showDistant;
+    }
+  }
+
+  syncTransforms(objects) {
+    return this.transformBuffer.sync(objects);
   }
 
   #applyPattern(group, fish) {

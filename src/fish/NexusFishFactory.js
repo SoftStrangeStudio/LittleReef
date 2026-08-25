@@ -67,7 +67,11 @@ const geometryFor = (mesh) => {
 export class NexusFishFactory {
   constructor() {
     this.cache = new Map();
+    this.distantGeometry = new THREE.IcosahedronGeometry(0.72, 1);
+    this.distantMaterial = new THREE.MeshStandardMaterial({ color: 0x58bfc0, roughness: 0.8 });
   }
+
+  get cacheSize() { return this.cache.size; }
 
   create(fish) {
     const params = toParams(fish);
@@ -98,13 +102,21 @@ export class NexusFishFactory {
     // Nexus bounds are authored before the render scale is applied. Keep the
     // Cannon proxy aligned with the visible fish rather than the source mesh.
     group.userData.physicsRadius = Math.max(cached.bounds.size[0], cached.bounds.size[1], cached.bounds.size[2]) * 0.18 * group.scale.x;
+    group.userData.detailMeshes = [];
     for (const mesh of cached.meshes) {
       const object = new THREE.Mesh(mesh.geometry, mesh.material);
       object.name = mesh.name;
       object.castShadow = true;
       object.receiveShadow = true;
       group.add(object);
+      group.userData.detailMeshes.push(object);
     }
+    const distant = new THREE.Mesh(this.distantGeometry, this.distantMaterial);
+    distant.name = 'Fish_LOD_Distant';
+    distant.visible = false;
+    distant.castShadow = false;
+    group.add(distant);
+    group.userData.distantMesh = distant;
     group.userData.tailMesh = group.getObjectByName('Fish_Caudal_Fin') ?? group.children.find((child) => /Tail|Caudal/i.test(child.name));
     return group;
   }
