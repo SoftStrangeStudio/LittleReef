@@ -14,6 +14,9 @@ export class FishPhysics {
     this.world.broadphase = new CANNON.SAPBroadphase(this.world);
     this.world.allowSleep = true;
     this.bodies = new Map();
+    this.collisions = 0;
+    this.world.defaultContactMaterial.friction = 0.18;
+    this.world.defaultContactMaterial.restitution = 0.42;
     const half = bounds.clone().multiplyScalar(0.5);
     wall(this.world, [0, -half.y - 0.35, 0], [half.x + 1, 0.35, half.z + 1]);
     wall(this.world, [0, half.y + 0.35, 0], [half.x + 1, 0.35, half.z + 1]);
@@ -38,6 +41,7 @@ export class FishPhysics {
     });
     body.addShape(new CANNON.Sphere(0.55));
     body.position.set(position.x, position.y, position.z);
+    body.addEventListener('collide', () => { this.collisions += 1; });
     this.world.addBody(body);
     this.bodies.set(id, body);
     return body;
@@ -59,8 +63,11 @@ export class FishPhysics {
     for (const object of objects) {
       const body = this.bodies.get(object.userData.fishId);
       if (!body) continue;
+      const speed = body.velocity.length();
+      if (speed > 1.35) body.velocity.scale(1.35 / speed, body.velocity);
       object.position.set(body.position.x, body.position.y, body.position.z);
       object.rotation.y = body.velocity.x >= 0 ? 0 : Math.PI;
+      object.rotation.z = Math.max(-0.18, Math.min(0.18, -body.velocity.y * 0.16));
     }
   }
 }
