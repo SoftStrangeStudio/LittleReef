@@ -9,13 +9,23 @@ export class SelectionService {
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
     this.targets = [];
+    this.enabled = true;
     this.selected = null;
     canvas.addEventListener('pointerdown', (event) => this.#pick(event));
   }
 
   register(group) { this.targets.push(group); }
 
+  setEnabled(enabled) {
+    this.enabled = enabled;
+    if (!enabled && this.selected) {
+      this.fishRenderer.setSelected(this.selected, false);
+      this.selected = null;
+    }
+  }
+
   #pick(event) {
+    if (!this.enabled) return;
     const rect = this.canvas.getBoundingClientRect();
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:menu": "node scripts/test-menu-navigation.mjs",
+    "test:swim": "node scripts/test-swim-navigation.mjs"
   },
   "dependencies": {
     "cannon-es": "0.20.0",

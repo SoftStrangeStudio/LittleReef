@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export class ReefService {
   constructor(scene, reefRenderer) {
-    this.bounds = new THREE.Vector3(9.2, 4.5, 4.4);
+    this.bounds = new THREE.Vector3(16, 7, 14);
     this.visuals = reefRenderer.create(scene);
   }
 

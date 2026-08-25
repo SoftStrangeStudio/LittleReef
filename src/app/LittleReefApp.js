@@ -9,13 +9,17 @@ import { UIService } from '../ui/UIService.js';
 import { FishPhysics } from '../physics/FishPhysics.js';
 import { GameStateService } from '../game/GameStateService.js';
 import { ReefAudioService } from '../audio/ReefAudioService.js';
+import { MenuTankScene } from '../menu/MenuTankScene.js';
+import { TankDiveTransition } from '../menu/TankDiveTransition.js';
+import { ControlledFishController } from '../control/ControlledFishController.js';
+import { FishCameraRig } from '../control/FishCameraRig.js';
 
 export class LittleReefApp {
   constructor(root) {
     this.root = root;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
-    this.camera.position.set(0, 0.2, 9.2);
+    this.camera.position.set(0, 0.2, 11.2);
     this.camera.lookAt(0, -0.2, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -30,10 +34,12 @@ export class LittleReefApp {
     this.audio = new ReefAudioService();
     this.audio.attachUserGesture(root);
     this.reefPhysics = new FishPhysics(this.reefService.bounds, () => this.audio.playCollision());
+    for (const obstacle of this.reefService.visuals.obstacles) this.reefPhysics.addObstacle(obstacle);
     this.fishService = new FishService(Math.random, this.reefPhysics);
     this.breedingService = new BreedingService(this.fishService);
     this.gameState = new GameStateService();
     this.fishObjects = new Map();
+    this.mode = 'menu';
 
     this.ui = new UIService(root, (ids) => {
       this.gameState.enter('parent-selection');
@@ -43,14 +49,28 @@ export class LittleReefApp {
     this.selection = new SelectionService(this.camera, this.renderer.domElement, this.fishRenderer, (id) => {
       const fish = this.fishService.get(id);
       if (fish) {
+        this.ui.setVisible(true);
         this.gameState.enter('fish-inspection');
         this.audio.playSelection(fish);
         this.ui.showFish(fish);
         this.ui.updateGameState(this.gameState.snapshot());
       }
     });
+    this.selection.setEnabled(false);
+    this.ui.setVisible(false);
 
     for (let i = 0; i < 8; i++) this.#spawn(this.fishService.createStarter(), i);
+
+    this.menu = new MenuTankScene(this.scene);
+    this.diveTransition = new TankDiveTransition({
+      scene: this.scene,
+      camera: this.camera,
+      menu: this.menu,
+      onComplete: () => this.#enterReef()
+    });
+    this.renderer.domElement.addEventListener('pointerdown', (event) => this.#handleMenuPointer(event));
+    this.renderer.domElement.addEventListener('pointermove', (event) => this.#handleSwimPointer(event));
+    this.renderer.domElement.addEventListener('wheel', (event) => this.#handleSwimDepth(event), { passive: false });
 
     this.clock = new THREE.Clock();
     addEventListener('resize', () => this.#resize());
@@ -94,15 +114,64 @@ export class LittleReefApp {
     this.scene.add(fill);
   }
 
+  #handleMenuPointer(event) {
+    if (this.mode !== 'menu') return;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const action = this.menu.pick(this.camera, event.clientX, event.clientY, rect);
+    if (action === 'play' && this.diveTransition.start()) {
+      this.mode = 'transition';
+      this.audio.playDive();
+    }
+  }
+
+  #enterReef() {
+    this.mode = 'reef';
+    this.menu.setVisible(false);
+    this.selection.setEnabled(true);
+    const [fishId, object] = this.fishObjects.entries().next().value;
+    this.controlledFish = new ControlledFishController({
+      fishId,
+      object,
+      physics: this.reefPhysics,
+      camera: this.camera,
+      bounds: this.reefService.bounds,
+      obstacles: this.reefService.visuals.obstacles
+    });
+    this.cameraRig = new FishCameraRig(this.camera, object);
+    this.gameState.enter('reef');
+    this.ui.updateGameState(this.gameState.snapshot());
+  }
+
+  #handleSwimPointer(event) {
+    if (this.mode !== 'reef' || !this.controlledFish) return;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    this.controlledFish.setPointer(x, y);
+  }
+
+  #handleSwimDepth(event) {
+    if (this.mode !== 'reef' || !this.controlledFish) return;
+    event.preventDefault();
+    this.controlledFish.adjustDepth(-Math.sign(event.deltaY) * 0.28);
+  }
+
   #update() {
     const delta = Math.min(this.clock.getDelta(), 0.05);
     const elapsed = this.clock.elapsedTime;
     this.reefService.update(delta, elapsed);
+    this.menu.update(elapsed);
+    if (this.mode === 'transition') this.diveTransition.update(delta);
     const objects = [...this.fishObjects.values()];
     for (const [id, object] of this.fishObjects) {
+      if (this.mode === 'reef' && this.controlledFish?.fishId === id) continue;
       this.fishService.behaviour(id)?.update(object, delta, elapsed, this.reefService.bounds, objects);
     }
+    if (this.mode === 'reef') this.controlledFish?.update(delta);
     this.reefPhysics.step(delta, objects);
+    if (this.mode === 'reef' && this.cameraRig && this.controlledFish) {
+      this.cameraRig.update(delta, this.controlledFish.lastDesiredVelocity);
+    }
     this.fishRenderer.updateLOD(this.camera, objects);
     this.fishRenderer.syncTransforms(objects);
     this.renderer.render(this.scene, this.camera);

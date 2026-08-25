@@ -26,6 +26,10 @@ export class UIService {
     this.breedButton.addEventListener('click', () => this.onBreed([...this.parentIds]));
   }
 
+  setVisible(visible) {
+    this.root.style.display = visible ? 'block' : 'none';
+  }
+
   updateGameState(gameState) {
     const active = gameState.goals.find((item) => !item.complete);
     this.goalText.textContent = active

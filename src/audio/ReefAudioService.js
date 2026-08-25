@@ -4,7 +4,8 @@ const tones = {
   breeding: { frequency: 330, duration: 0.28, volume: 0.045, type: 'sawtooth' },
   reveal: { frequency: 740, duration: 0.34, volume: 0.055, type: 'sine' },
   rare: { frequency: 980, duration: 0.42, volume: 0.06, type: 'triangle' },
-  collision: { frequency: 180, duration: 0.035, volume: 0.012, type: 'sine' }
+  collision: { frequency: 180, duration: 0.035, volume: 0.012, type: 'sine' },
+  dive: { frequency: 210, duration: 0.62, volume: 0.035, type: 'sine' }
 };
 
 const seedOffset = (seed) => {
@@ -81,6 +82,7 @@ export class ReefAudioService {
   playParent(fish) { return this.play('parent', fish?.seed); }
   playBreed(seed) { return this.play('breeding', seed); }
   playReveal(fish) { return this.play(fish?.genome?.mutation ? 'rare' : 'reveal', fish?.seed); }
+  playDive() { return this.play('dive', 'glass-dive'); }
   playCollision() {
     const now = Date.now();
     if (now - this.lastCollisionAt < 120) return false;
