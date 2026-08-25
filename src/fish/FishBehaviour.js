@@ -1,3 +1,5 @@
+[main d46f235] Give fish a clearer swim rhythm
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 import * as THREE from 'three';
 
 export class FishBehaviour {
@@ -14,7 +16,7 @@ export class FishBehaviour {
   update(object, delta, elapsed, bounds) {
     this.phase += delta * this.speed;
     object.position.addScaledVector(this.velocity, delta * this.speed);
-    object.position.y += Math.sin(elapsed * 1.35 + this.phase) * delta * 0.035;
+    object.position.y += Math.sin(elapsed * 1.35 + this.phase) * delta * 0.06;
     object.position.z += Math.sin(elapsed * 0.7 + this.phase) * delta * 0.025;
 
     const half = bounds.clone().multiplyScalar(0.5);
