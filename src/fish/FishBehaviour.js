@@ -1,5 +1,3 @@
-[main d46f235] Give fish a clearer swim rhythm
- 1 file changed, 1 insertion(+), 1 deletion(-)
 import * as THREE from 'three';
 
 export class FishBehaviour {
