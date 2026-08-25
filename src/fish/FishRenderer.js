@@ -43,6 +43,17 @@ export class FishRenderer {
 
   setSelected(group, selected) {
     group.scale.setScalar(selected ? 1.12 : 1);
+    if (selected && !group.userData.selectionRing) {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.72, 0.035, 8, 32),
+        new THREE.MeshBasicMaterial({ color: 0xfff1a6, transparent: true, opacity: 0.9 })
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = -0.42;
+      group.add(ring);
+      group.userData.selectionRing = ring;
+    }
+    if (group.userData.selectionRing) group.userData.selectionRing.visible = selected;
   }
 
   #applyPattern(group, fish) {
