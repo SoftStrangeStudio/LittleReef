@@ -30,7 +30,7 @@ export class FishPhysics {
     return this.bodies.size;
   }
 
-  addFish(id, position) {
+  addFish(id, position, radius = 0.55) {
     if (this.bodies.has(id)) return this.bodies.get(id);
     const body = new CANNON.Body({
       mass: 0.55,
@@ -39,7 +39,7 @@ export class FishPhysics {
       angularDamping: 0.9,
       allowSleep: false
     });
-    body.addShape(new CANNON.Sphere(0.55));
+    body.addShape(new CANNON.Sphere(Math.max(0.22, radius)));
     body.position.set(position.x, position.y, position.z);
     body.addEventListener('collide', () => { this.collisions += 1; });
     this.world.addBody(body);

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { NexusFishFactory } from './NexusFishFactory.js';
 
 const bodyScale = {
   round: [1.05, 0.72, 0.58],
@@ -7,7 +8,13 @@ const bodyScale = {
 };
 
 export class FishRenderer {
+  constructor(factory = new NexusFishFactory()) {
+    this.factory = factory;
+  }
+
   create(fish) {
+    return this.factory.create(fish);
+    /* istanbul ignore next: legacy primitive renderer retained as a fallback reference. */
     const group = new THREE.Group();
     group.name = fish.id;
     group.userData.fishId = fish.id;
@@ -42,7 +49,8 @@ export class FishRenderer {
   }
 
   setSelected(group, selected) {
-    group.scale.setScalar(selected ? 1.12 : 1);
+    const baseScale = group.userData.baseScale ?? 1;
+    group.scale.setScalar(baseScale * (selected ? 1.12 : 1));
     if (selected && !group.userData.selectionRing) {
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(0.72, 0.035, 8, 32),

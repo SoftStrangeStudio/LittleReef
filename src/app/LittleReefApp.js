@@ -23,11 +23,11 @@ export class LittleReefApp {
     root.appendChild(this.renderer.domElement);
 
     this.#lighting();
+    this.reefService = new ReefService(this.scene, new ReefRenderer());
     this.fishRenderer = new FishRenderer();
     this.reefPhysics = new FishPhysics(this.reefService.bounds);
     this.fishService = new FishService(Math.random, this.reefPhysics);
     this.breedingService = new BreedingService(this.fishService);
-    this.reefService = new ReefService(this.scene, new ReefRenderer());
     this.fishObjects = new Map();
 
     this.ui = new UIService(root, () => {}, (ids) => this.#breed(ids));
@@ -50,7 +50,7 @@ export class LittleReefApp {
     object.position.set(-3.1 + col * 2.05, 0.8 - row * 1.45, -0.5 + (index % 3) * 0.45);
     this.scene.add(object);
     this.fishObjects.set(fish.id, object);
-    this.reefPhysics.addFish(fish.id, object.position);
+    this.reefPhysics.addFish(fish.id, object.position, object.userData.physicsRadius);
     this.selection.register(object);
   }
 
