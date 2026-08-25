@@ -7,6 +7,7 @@ import { BreedingService } from '../breeding/BreedingService.js';
 import { SelectionService } from '../selection/SelectionService.js';
 import { UIService } from '../ui/UIService.js';
 import { FishPhysics } from '../physics/FishPhysics.js';
+import { GameStateService } from '../game/GameStateService.js';
 
 export class LittleReefApp {
   constructor(root) {
@@ -28,9 +29,11 @@ export class LittleReefApp {
     this.reefPhysics = new FishPhysics(this.reefService.bounds);
     this.fishService = new FishService(Math.random, this.reefPhysics);
     this.breedingService = new BreedingService(this.fishService);
+    this.gameState = new GameStateService();
     this.fishObjects = new Map();
 
     this.ui = new UIService(root, () => {}, (ids) => this.#breed(ids));
+    this.ui.updateGameState(this.gameState.snapshot());
     this.selection = new SelectionService(this.camera, this.renderer.domElement, this.fishRenderer, (id) => {
       const fish = this.fishService.get(id);
       if (fish) this.ui.showFish(fish);
@@ -50,16 +53,21 @@ export class LittleReefApp {
     object.position.set(-3.1 + col * 2.05, 0.8 - row * 1.45, -0.5 + (index % 3) * 0.45);
     this.scene.add(object);
     this.fishObjects.set(fish.id, object);
+    this.gameState.recordFish(fish);
+    this.ui.updateGameState(this.gameState.snapshot());
     this.reefPhysics.addFish(fish.id, object.position, object.userData.physicsRadius);
     this.selection.register(object);
   }
 
   #breed(ids) {
+    this.gameState.enter('breeding');
     const child = this.breedingService.breed(this.fishService.get(ids[0]), this.fishService.get(ids[1]));
     if (!child) return;
     this.#spawn(child);
     this.ui.resetParents();
     this.ui.showFish(child);
+    this.gameState.recordBreed(child);
+    this.ui.updateGameState(this.gameState.snapshot());
   }
 
   #lighting() {
