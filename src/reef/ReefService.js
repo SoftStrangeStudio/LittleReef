@@ -1,5 +1,3 @@
-[main 7f4a316] Make reef particles feel alive
- 1 file changed, 1 insertion(+), 1 deletion(-)
 import * as THREE from 'three';
 
 export class ReefService {
