@@ -1,3 +1,5 @@
+[main 652be5a] Improve coral presentation
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 import * as THREE from 'three';
 
 export class ReefRenderer {
@@ -31,7 +33,7 @@ export class ReefRenderer {
 
     const coralColors = [0xef766f, 0xf2ad62, 0x8e75ca, 0x66b995];
     for (let i = 0; i < 10; i++) {
-      const coral = new THREE.Mesh(
+    const coral = new THREE.Mesh(
         new THREE.CylinderGeometry(0.09 + (i % 3) * 0.03, 0.16, 0.75 + (i % 4) * 0.2, 7),
         new THREE.MeshStandardMaterial({ color: coralColors[i % coralColors.length], roughness: 0.8 })
       );
