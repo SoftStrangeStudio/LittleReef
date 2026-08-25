@@ -9,6 +9,7 @@ const colorBucket = (value) => {
 };
 
 const toParams = (fish) => {
+  if (fish.genome) return { ...fish.genome, quality: 'preview' };
   const traits = fish.traits ?? {};
   return {
     speciesFamily: traits.body === 'long' ? 'torpedo' : traits.body === 'tall' ? 'disc' : 'oval',
