@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ReefRenderer } from '../reef/ReefRenderer.js';
-import { ReefService } from '../reef/ReefService.js';
+import { DEFAULT_REEF_CONFIG, ReefService } from '../reef/ReefService.js';
 import { FishRenderer } from '../fish/FishRenderer.js';
 import { FishService } from '../fish/FishService.js';
 import { BreedingService } from '../breeding/BreedingService.js';
@@ -29,7 +29,7 @@ export class LittleReefApp {
     root.appendChild(this.renderer.domElement);
 
     this.#lighting();
-    this.reefService = new ReefService(this.scene, new ReefRenderer());
+    this.reefService = new ReefService(this.scene, new ReefRenderer(), DEFAULT_REEF_CONFIG);
     this.fishRenderer = new FishRenderer();
     this.audio = new ReefAudioService();
     this.audio.attachUserGesture(root);

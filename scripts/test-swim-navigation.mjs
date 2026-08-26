@@ -4,6 +4,7 @@ import { SwimVolume } from '../src/control/SwimVolume.js';
 import { RoutePlanner3D } from '../src/control/RoutePlanner3D.js';
 import { ObstacleAvoidanceSolver } from '../src/control/ObstacleAvoidanceSolver.js';
 import { FishCameraRig } from '../src/control/FishCameraRig.js';
+import { RockArchFactory } from '../src/reef/rock-arch/RockArchFactory.js';
 
 const bounds = new THREE.Vector3(16, 7, 14);
 const volume = new SwimVolume(bounds);
@@ -41,10 +42,41 @@ for (let index = 0; index < 240; index += 1) rig.update(1 / 60, new THREE.Vector
 assert.ok(Math.abs(camera.position.y - (fish.position.y + 1.15)) < 0.01, 'vertical steering cannot drag the camera below its follow height');
 assert.ok(camera.position.distanceTo(fish.position) < 3.7, 'controlled fish remains readable');
 
+const rockArch = new RockArchFactory().create({
+  preset: '01-balanced-stack',
+  seed: 'little-reef-main-v1',
+  position: [0, -2.25, -3.8],
+});
+const passageY = rockArch.passage.center[1];
+const passageRoute = planner.plan(
+  new THREE.Vector3(0, passageY, 0.5),
+  new THREE.Vector3(0, passageY, -6.5),
+  rockArch.obstacles,
+);
+assert.equal(passageRoute.length, 1, 'route through the visible opening remains direct');
+
+const pillar = rockArch.obstacles[2];
+const pillarRoute = planner.plan(
+  new THREE.Vector3(pillar.position.x, pillar.position.y, 0.5),
+  new THREE.Vector3(pillar.position.x, pillar.position.y, -6.5),
+  rockArch.obstacles,
+);
+assert.equal(pillarRoute.length, 2, 'route into a visible pillar detours');
+const pillarAvoidance = new ObstacleAvoidanceSolver().solve(
+  new THREE.Vector3(pillar.position.x, pillar.position.y, pillar.position.z + 2),
+  new THREE.Vector3(0, 0, -1),
+  rockArch.obstacles,
+);
+assert.ok(pillarAvoidance.lengthSq() > 0, 'arch avoidance activates before pillar contact');
+rockArch.dispose();
+
 console.log(JSON.stringify({
   status: 'pass',
   detourWaypoints: detour.map((point) => point.toArray()),
   boundaryCorrection: correction.toArray(),
   avoidance: avoidance.toArray(),
+  archPassageWaypoints: passageRoute.map((point) => point.toArray()),
+  archPillarWaypoints: pillarRoute.map((point) => point.toArray()),
+  archPillarAvoidance: pillarAvoidance.toArray(),
   cameraPosition: camera.position.toArray()
 }, null, 2));
