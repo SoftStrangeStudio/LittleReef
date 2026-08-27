@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:arch": "node scripts/test-rock-arch.mjs",
+    "test:coral": "node scripts/test-coral-assets.mjs && node scripts/test-coral-placement.mjs",
     "test:menu": "node scripts/test-menu-navigation.mjs",
     "test:swim": "node scripts/test-swim-navigation.mjs"
   },

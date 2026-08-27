@@ -269,7 +269,9 @@ function buildBodyMesh(definition, surface, quality = 'high') {
       const b = a + 1;
       const c = (i + 1) * stride + j;
       const d = c + 1;
-      indices.push(a, c, b, b, c, d);
+      // u advances from tail to nose while v circles the body. This winding
+      // keeps the shell faces and their computed normals pointing outward.
+      indices.push(a, b, c, b, d, c);
     }
   }
 

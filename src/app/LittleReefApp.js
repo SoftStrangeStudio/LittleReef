@@ -15,7 +15,7 @@ import { ControlledFishController } from '../control/ControlledFishController.js
 import { FishCameraRig } from '../control/FishCameraRig.js';
 
 export class LittleReefApp {
-  constructor(root) {
+  constructor(root, { coralLibrary = null, reefConfig = DEFAULT_REEF_CONFIG } = {}) {
     this.root = root;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
@@ -29,7 +29,7 @@ export class LittleReefApp {
     root.appendChild(this.renderer.domElement);
 
     this.#lighting();
-    this.reefService = new ReefService(this.scene, new ReefRenderer(), DEFAULT_REEF_CONFIG);
+    this.reefService = new ReefService(this.scene, new ReefRenderer(undefined, coralLibrary), reefConfig);
     this.fishRenderer = new FishRenderer();
     this.audio = new ReefAudioService();
     this.audio.attachUserGesture(root);

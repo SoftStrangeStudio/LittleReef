@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { RockArchFactory } from './rock-arch/RockArchFactory.js';
+import { CoralField } from './coral/CoralField.js';
 
 export class ReefRenderer {
-  constructor(rockArchFactory = new RockArchFactory()) {
+  constructor(rockArchFactory = new RockArchFactory(), coralLibrary = null) {
     this.rockArchFactory = rockArchFactory;
+    this.coralLibrary = coralLibrary;
   }
 
   create(scene, config = {}) {
@@ -49,21 +51,10 @@ export class ReefRenderer {
       scene.add(rock);
     }
 
-    const coralColors = [0xef766f, 0xf2ad62, 0x8e75ca, 0x66b995];
-    for (let i = 0; i < 18; i++) {
-    const coral = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.09 + (i % 3) * 0.03, 0.16, 0.75 + (i % 4) * 0.2, 7),
-        new THREE.MeshStandardMaterial({ color: coralColors[i % coralColors.length], roughness: 0.8 })
-      );
-      const row = Math.floor(i / 9);
-      let x = -4.2 + (i % 9) * 1.05;
-      const z = -1.6 - row * 4.1 + (i % 3) * 0.45;
-      if (Math.abs(x) < 1.4) x += x < 0 || (x === 0 && row === 0) ? -2.8 : 2.8;
-      else if (Math.abs(x) < 2.75 && z < -4.6) x += x < 0 ? -2.4 : 2.4;
-      coral.position.set(x, -1.8 + coral.geometry.parameters.height / 2, z);
-      coral.rotation.z = (i % 2 ? 1 : -1) * 0.12;
-      scene.add(coral);
-    }
+    const coralField = this.coralLibrary
+      ? CoralField.create({ library: this.coralLibrary, config, floorY: -2.25 })
+      : null;
+    if (coralField) scene.add(coralField.group);
 
     const particles = new THREE.BufferGeometry();
     const positions = [];
@@ -76,11 +67,12 @@ export class ReefRenderer {
     particles.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const points = new THREE.Points(particles, new THREE.PointsMaterial({ color: 0xbde8ef, size: 0.025, transparent: true, opacity: 0.48 }));
     scene.add(points);
+    if (coralField) obstacles.push(...coralField.obstacles);
     obstacles.push(...rockArch.obstacles);
     return {
       particles: points,
       obstacles,
-      landmarks: { rockArch },
+      landmarks: { rockArch, coralField },
     };
   }
 }

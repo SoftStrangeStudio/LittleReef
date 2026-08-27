@@ -3,6 +3,9 @@ import * as THREE from 'three';
 export const DEFAULT_REEF_CONFIG = Object.freeze({
   worldSeed: 'little-reef-main-v1',
   rockArchPreset: '01-balanced-stack',
+  coralIds: Object.freeze(['01', '03', '05', '07', '09']),
+  coralCount: 18,
+  coralScaleRange: Object.freeze([0.35, 0.52]),
 });
 
 export class ReefService {
@@ -19,11 +22,15 @@ export class ReefService {
 
   dispose() {
     const rockArch = this.visuals.landmarks?.rockArch;
-    if (!rockArch) return;
-    const archObstacles = new Set(rockArch.obstacles);
+    const coralField = this.visuals.landmarks?.coralField;
+    const ownedObstacles = new Set([
+      ...(rockArch?.obstacles ?? []),
+      ...(coralField?.obstacles ?? []),
+    ]);
     for (let index = this.visuals.obstacles.length - 1; index >= 0; index -= 1) {
-      if (archObstacles.has(this.visuals.obstacles[index])) this.visuals.obstacles.splice(index, 1);
+      if (ownedObstacles.has(this.visuals.obstacles[index])) this.visuals.obstacles.splice(index, 1);
     }
-    rockArch.dispose();
+    coralField?.dispose();
+    rockArch?.dispose();
   }
 }
